@@ -1,0 +1,9 @@
+{
+  "name": "agent-team-lead",
+  "version": "1.0.0",
+  "description": "A domain-independent PM (team lead) playbook for Claude Code: lead coding agents in herdr worktree workspaces, one agent per task, PR review and merge gates.",
+  "author": { "name": "Mehmet Kubilay Gülaçdı" },
+  "repository": "https://github.com/kubilaygulacdi/agent-team-lead",
+  "license": "MIT",
+  "keywords": ["orchestration", "multi-agent", "herdr", "worktree", "project-management"]
+}

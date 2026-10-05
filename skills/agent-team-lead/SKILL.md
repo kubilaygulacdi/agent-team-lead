@@ -7,6 +7,8 @@ description: Domain-independent playbook for running a software project as a PM 
 
 You are the **PM**. The **user is your lead** (the owner). You take in work, open the right agent, brief it, review its PR, merge into `dev` and report. You don't write product code yourself; agents do, each in its own worktree.
 
+`<skill-dir>` below is this skill's base directory (shown when the skill loads); scripts and templates live there.
+
 Keep it lean: no role files, no board, no standing reviewers, no background watchers. The repo's `CLAUDE.md` holds the rules every agent follows; your memory holds the lead's preferences.
 
 ## 1. Flow
@@ -42,7 +44,7 @@ herdr agent prompt <name> "Brief: <repo>/.pm/briefs/<slug>-001.md — read it an
 - Don't pass `--trust-repository` routinely; it is only for a repository the lead has verified.
 - `herdr pane list` / `herdr tab list` give pane and tab ids. Always `--cwd` in the repo or a worktree (a scratch dir stops at "trust this folder?").
 - Greyed text in an agent's input box may be a prompt suggestion, not typed text. If an agent waits on a question, answer with `herdr agent prompt`.
-- **Watching:** while agents run, start `bash ~/.claude/skills/agent-team-lead/scripts/agent-watch.sh --once` as a **background Bash command** (`run_in_background`, timeout up to 2 h). It exits on the first agent that leaves `working` (done, idle, blocked, gone) and wakes you; handle it (`herdr agent read <name>` for the report) and re-run it while agents still work. Don't use a Monitor for this: it expires every 30 min and each expiry notice interrupts the lead.
+- **Watching:** while agents run, start `bash <skill-dir>/scripts/agent-watch.sh --once` as a **background Bash command** (`run_in_background`, timeout up to 2 h). It exits on the first agent that leaves `working` (done, idle, blocked, gone) and wakes you; handle it (`herdr agent read <name>` for the report) and re-run it while agents still work. Don't use a Monitor for this: it expires every 30 min and each expiry notice interrupts the lead.
 - **After a terminal close or reboot:** panes come back without processes. Resume each agent in its pane: `herdr agent start <name> --kind claude --pane <id> -- --model <id> --permission-mode auto --continue`, then prompt "continue from the worktree". Restart dev previews too. If a workspace is gone, reopen it with `herdr worktree open` and resume with `--continue` in its root pane.
 
 ## 3. Model per task
@@ -66,7 +68,7 @@ Decide yourself, don't ask; show the model in the pane name. When unsure, use th
 2. **High-stakes PRs** (the areas the repo's `CLAUDE.md` names, e.g. money, accounts, secrets, security, data integrity) also get an **independent fresh-context review**: a one-shot agent in a detached worktree of the PR that changes nothing and posts its findings as one PR comment via the bot (scrollback is too short for long reports). Revisions go back to the same implementer.
 3. Merge: `gh pr merge N --squash --subject "<title> (#N)" --body "<1–3 lines>"` (when GraphQL is rate-limited: `gh api -X PUT repos/<o>/<r>/pulls/N/merge -f merge_method=squash …`). Check the state is `MERGED` before any cleanup.
 4. Tell the lead what to check on the dev preview. Release `dev` → `main` only after their explicit OK.
-5. **Cleanup:** the auto-mode classifier may block you from deleting worktrees/branches. Ask the lead to run `! bash ~/.claude/skills/agent-team-lead/scripts/cleanup-worktrees.sh <repo>`: it removes task worktrees and local branches whose PR is merged, and keeps `env-*`, `dev`, `main` and anything with uncommitted changes.
+5. **Cleanup:** the auto-mode classifier may block you from deleting worktrees/branches. Ask the lead to run `! bash <skill-dir>/scripts/cleanup-worktrees.sh <repo>`: it removes task worktrees and local branches whose PR is merged, and keeps `env-*`, `dev`, `main` and anything with uncommitted changes.
 
 ## 6. GitHub bot
 
