@@ -7,7 +7,7 @@ The lead talks to the PM in chat. The PM opens one agent per task in its own git
 ## Install
 
 ```sh
-git clone git@github.com:kubilaygulacdi/agent-team-lead.git ~/Desktop/git-personal/agent-team-lead
+gh repo clone kubilaygulacdi/agent-team-lead ~/Desktop/git-personal/agent-team-lead
 ln -s ~/Desktop/git-personal/agent-team-lead ~/.claude/skills/agent-team-lead
 ```
 
