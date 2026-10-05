@@ -1,6 +1,6 @@
 ---
 name: agent-team-lead
-description: Domain-independent playbook for running a software project as a PM (team lead) agent that leads coding agents in herdr worktree workspaces — the lead talks to the PM in chat, the PM opens one agent per task in its own git worktree with a brief, reviews the PR and squash-merges it into the integration branch (`dev`); `dev` → `main` only with the lead's OK. Agents write GitHub text through the lead's GitHub App bot. Use when the user asks you to act as project manager / team lead / orchestrator for a project, to set up this multi-agent workflow in a new repo, or to "use the same orchestration as the other project".
+description: Domain-independent playbook for running a software project as a PM (team lead) agent that leads coding agents, one per task in its own git worktree (any harness: built-in sub-agents or a terminal multiplexer) — the lead talks to the PM in chat, the PM opens one agent per task in its own git worktree with a brief, reviews the PR and squash-merges it into the integration branch (`dev`); `dev` → `main` only with the lead's OK. Agents write GitHub text through the lead's GitHub App bot. Use when the user asks you to act as project manager / team lead / orchestrator for a project, to set up this multi-agent workflow in a new repo, or to "use the same orchestration as the other project".
 ---
 
 # Agent team lead playbook
@@ -23,33 +23,35 @@ lead (chat) → PM → agent per task (own worktree, branch off origin/dev) → 
 - **Chat is the channel.** Work asked in chat needs no GitHub issue; the PR body describes it. Issues exist only when the lead opens one on GitHub. Ask the lead in chat: few questions, only real product decisions; close minor points with stated defaults.
 - **Never change what the lead has already seen** (UI, wording, behaviour) without asking.
 - **Restate before dispatching:** when the lead answers with a short reference ("your 2nd option") and your message offered an option plus an alternative, say in one line which one you are building before opening the agent.
-- **Agents may talk to each other directly** (`herdr agent prompt <other> "…"`). Scope changes and lead decisions go through the PM.
+- **Agents may talk to each other directly** (through the backend's **Prompt**, §2). Scope changes and lead decisions go through the PM.
 
-## 2. Opening an agent (herdr)
+## 2. Opening and running agents
 
-Use herdr's own worktree flow: **each task gets its own worktree workspace**, linked under the repo's workspace in herdr's sidebar. No custom tab, no keeper pane, no wrapper script. The PM's own tab stays a single pane.
+Any harness works. What the playbook needs is six operations; pick a backend once per project (ask the lead which terminal setup they use, record it in memory) and use it for all of them.
 
-```sh
-herdr worktree create --cwd <repo> --branch <feat/slug> --base origin/dev \
-  --path ../<repo>.worktrees/<slug> --label "<name> · <Model name>" --no-focus
-#   → read the new workspace and its root pane id from the JSON reply
-herdr agent start <name> --kind claude --pane <root pane> -- --model <model-id> --permission-mode auto
-herdr agent prompt <name> "Brief: <repo>/.pm/briefs/<slug>-001.md — read it and carry it out. Report in English when done."
-```
+| Operation | What it must do |
+|---|---|
+| **Open** | a fresh agent in its **own git worktree** (`git fetch`, then a branch off `origin/dev`, or a detached checkout for reviews and research), with the chosen model and an auto/accept-edits permission mode |
+| **Name** | a name the lead can see, carrying the model: `<task> · <Model name>` |
+| **Prompt** | send the brief pointer, later revisions and answers to its questions |
+| **Read** | read its final report (and its screen if it seems stuck) |
+| **Watch** | get woken when it stops working (done, waiting, blocked, gone) without polling in the foreground |
+| **Close** | end it once its PR is merged or its report read; never close what you didn't open |
 
-- `git fetch` first so `origin/dev` is current. The workspace label carries the model (herdr doesn't show it).
-- A reviewer of a PR: `git worktree add --detach ../<repo>.worktrees/review-N origin/<branch>`, then `herdr worktree open --workspace <PM workspace> --path <it>` and start the agent in its root pane.
-- Tasks without a branch (research, edits outside the repo) are linked the same way: `git worktree add --detach ../<repo>.worktrees/<slug> origin/dev`, then `herdr worktree open --workspace <PM workspace> --path <it> --label "<name> · <Model name>"`. No branch is created and nothing reaches GitHub; the cleanup script (§5) removes the clean checkout. Never open an agent with a bare `herdr workspace create`: that makes an unlinked top-level workspace instead of one linked under the PM's.
-- When the task is merged (or its research report read), close that workspace (`herdr workspace close <id>`). Never close workspaces you didn't create. The checkout itself is removed by the cleanup script (§5).
-- Don't pass `--trust-repository` routinely; it is only for a repository the lead has verified.
-- `herdr pane list` / `herdr tab list` give pane and tab ids. Always `--cwd` in the repo or a worktree (a scratch dir stops at "trust this folder?").
-- Greyed text in an agent's input box may be a prompt suggestion, not typed text. If an agent waits on a question, answer with `herdr agent prompt`.
-- **Watching:** while agents run, start `bash <skill-dir>/scripts/agent-watch.sh --once` as a **background Bash command** (`run_in_background`, timeout up to 2 h). It exits on the first agent that leaves `working` (done, idle, blocked, gone) and wakes you; handle it (`herdr agent read <name>` for the report) and re-run it while agents still work. Don't use a Monitor for this: it expires every 30 min and each expiry notice interrupts the lead.
-- **After a terminal close or reboot:** panes come back without processes. Resume each agent in its pane: `herdr agent start <name> --kind claude --pane <id> -- --model <id> --permission-mode auto --continue`, then prompt "continue from the worktree". Restart dev previews too. If a workspace is gone, reopen it with `herdr worktree open` and resume with `--continue` in its root pane.
+**Backends:**
+
+- **Built-in sub-agents (any harness, nothing to install).** Claude Code's `Agent` tool with `isolation: "worktree"`, `model`, and a `description` that starts with the model (`Opus 5.5 · today lot`). It runs in the background in its own worktree and notifies you when done; continue it with `SendMessage`. Simplest and portable, but the lead can't watch or type into it directly, so prefer a terminal backend when the lead wants to see agents work.
+- **A terminal multiplexer** (one interactive Claude Code session per task, visible to the lead): see `references/herdr.md` (with `scripts/agent-watch.sh`) or `references/tmux.md`. Other multiplexers follow the same six operations.
+
+Rules for every backend:
+- Always start the agent with its working directory in the repo or a worktree (a scratch dir stops at "trust this folder?").
+- Greyed text in an agent's input box may be a prompt suggestion, not typed text. If an agent waits on a question, answer it through **Prompt**.
+- **Watching** runs as a background command (or the harness's own notification), never a foreground loop. Avoid watchers that expire every 30 minutes: each expiry notice interrupts the lead.
+- **After a terminal close or reboot:** sessions come back without processes (or not at all). Resume each agent in its worktree with `claude --continue` and the prompt "continue from the worktree". Restart dev previews too.
 
 ## 3. Model per task
 
-Decide yourself, don't ask; show the model in the pane name. When unsure, use the strongest.
+Decide yourself, don't ask; show the model in the agent's name. When unsure, use the strongest.
 - **Strongest (Opus-class):** the project's high-stakes areas (e.g. money, accounts, security), architecture, subtle bugs, research, and all design work (new screens, layout, UX).
 - **Cheaper (Sonnet-class):** small mechanical edits (a label, copy, a token/spacing fix), docs, small config.
 - **Read-only work** (pulling data, web lookups, collecting info) always runs on the cheaper model, also inside a strong agent's task: that agent hands those parts to a cheaper sub-agent. The sub-agent's `description` starts with the model and version (`Sonnet 5.5 · pricing lookup`): the agent's screen shows the description but not the model. The label is display only; the `model` parameter picks the model.
@@ -58,7 +60,7 @@ Decide yourself, don't ask; show the model in the pane name. When unsure, use th
 
 - **File** in `<repo>/.pm/briefs/<slug>-001.md` (`.pm/` is gitignored) for multi-part, UI or high-stakes work. Use `templates/brief.md`: the lead's words verbatim, what goes / what stays, rules, how to verify, done-when.
 - **Small clear tasks:** 3–5 lines straight in the prompt.
-- **Research-only tasks** (audits, comparisons, design research): no PR; the brief says "no code changes" and names a report file in `<repo>/.pm/research/`. Read the report yourself, summarise it for the lead, close the pane.
+- **Research-only tasks** (audits, comparisons, design research): no PR; the brief says "no code changes" and names a report file in `<repo>/.pm/research/`. Read the report yourself, summarise it for the lead, close the agent.
 - Self-contained: the agent must not need your conversation.
 - **Language:** briefs, prompts and agent-to-agent messages are in English (fewer tokens, no translation drift into an English repo); the lead's own words stay quoted verbatim in their language. Agents report in English; you report to the lead in the lead's language.
 
@@ -101,6 +103,6 @@ New machine or repo: the lead creates the App (GitHub → Settings → Developer
 ## 10. Session start
 
 1. Read `.pm/HANDOFF.md`, then memory.
-2. `herdr agent list`; resume dead agents (§2); start the watcher (§2) if any run.
+2. List the running agents with your backend; resume dead ones (§2); start the watcher if any run.
 3. Start the dev preview if the lead will check something.
 4. `gh pr list` for open PRs waiting on review.

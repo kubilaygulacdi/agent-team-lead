@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "agent-team-lead",
-      "description": "A domain-independent PM (team lead) playbook: lead coding agents in herdr worktree workspaces, one agent per task, PR review and merge gates.",
+      "description": "A domain-independent PM (team lead) playbook: lead coding agents, one per task in its own git worktree (any harness), PR review and merge gates.",
       "author": { "name": "Mehmet Kubilay Gülaçdı" },
       "category": "development",
       "source": "./"
