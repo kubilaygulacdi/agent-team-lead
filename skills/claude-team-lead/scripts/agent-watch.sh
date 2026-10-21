@@ -5,7 +5,7 @@
 #   --once: exit after the first event. Run it as a background Bash command (up to 2 h) and re-run
 #           it after handling the event: one wake-up per event, no expiry notices.
 #   without: stream every event (for a Monitor, which expires after 30 min).
-# Only named agents count (`herdr agent start <name>`): the PM and other sessions have no name.
+# Only named agents count (`herdr agent start <name>`): the TL and other sessions have no name.
 ONCE=0; [ "${1:-}" = "--once" ] && { ONCE=1; shift; }
 INTERVAL="${1:-15}"
 hit=0

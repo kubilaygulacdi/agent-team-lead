@@ -1,5 +1,5 @@
-# PM handoff — <project>
-Updated: <YYYY-MM-DD HH:MM>. A fresh PM reads this first; rules are in memory.
+# TL handoff — <project>
+Updated: <YYYY-MM-DD HH:MM>. A fresh TL reads this first; rules are in memory.
 
 ## Session start
 1. <services / apps the lead must have open>

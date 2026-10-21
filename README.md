@@ -1,4 +1,4 @@
-# agent-team-lead
+# claude-team-lead
 
 A [Claude Code](https://claude.com/claude-code) skill that lets one Claude session act as the **team lead (TL)** of your software project.
 
@@ -27,11 +27,11 @@ Nothing is built without your go, and nothing reaches `main` without your OK.
 ## Install
 
 ```
-/plugin marketplace add kubilaygulacdi/agent-team-lead
-/plugin install agent-team-lead@agent-team-lead
+/plugin marketplace add kubilaygulacdi/claude-team-lead
+/plugin install claude-team-lead@claude-team-lead
 ```
 
-Update later with `/plugin marketplace update agent-team-lead`.
+Update later with `/plugin marketplace update claude-team-lead`.
 
 ## Use
 
@@ -39,7 +39,7 @@ Open Claude Code in your project and say something like *"be the team lead for t
 
 ## What's inside
 
-- `skills/agent-team-lead/SKILL.md`: the playbook the TL follows.
+- `skills/claude-team-lead/SKILL.md`: the playbook the TL follows.
 - `references/`: how to run agents with herdr or tmux.
 - `scripts/`: watch agents, clean up merged worktrees, post to GitHub as a bot.
 - `templates/`: brief, handoff and `CLAUDE.md` templates.

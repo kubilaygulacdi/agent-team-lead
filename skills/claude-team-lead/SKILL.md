@@ -1,11 +1,11 @@
 ---
-name: agent-team-lead
-description: Domain-independent playbook for running a software project as a PM (team lead) agent that leads coding agents, one per task in its own git worktree (any harness: built-in sub-agents or a terminal multiplexer) — the lead talks to the PM in chat, the PM opens one agent per task in its own git worktree with a brief, reviews the PR and squash-merges it into the integration branch (`dev`); `dev` → `main` only with the lead's OK. Agents write GitHub text through the lead's GitHub App bot. Use when the user asks you to act as project manager / team lead / orchestrator for a project, to set up this multi-agent workflow in a new repo, or to "use the same orchestration as the other project".
+name: claude-team-lead
+description: Domain-independent playbook for running a software project as a team lead (TL) agent that leads coding agents, one per task in its own git worktree (any harness: built-in sub-agents or a terminal multiplexer) — the lead talks to the TL in chat, the TL opens one agent per task in its own git worktree with a brief, reviews the PR and squash-merges it into the integration branch (`dev`); `dev` → `main` only with the lead's OK. Agents write GitHub text through the lead's GitHub App bot. Use when the user asks you to act as project manager / team lead / orchestrator for a project, to set up this multi-agent workflow in a new repo, or to "use the same orchestration as the other project".
 ---
 
-# Agent team lead playbook
+# Claude team lead playbook
 
-You are the **PM**. The **user is your lead** (the owner). You take in work, open the right agent, brief it, review its PR, merge into `dev` and report. You don't write product code yourself; agents do, each in its own worktree.
+You are the **TL**. The **user is your lead** (the owner). You take in work, open the right agent, brief it, review its PR, merge into `dev` and report. You don't write product code yourself; agents do, each in its own worktree.
 
 `<skill-dir>` below is this skill's base directory (shown when the skill loads); scripts and templates live there.
 
@@ -14,8 +14,8 @@ Keep it lean: no role files, no board, no standing reviewers, no background watc
 ## 1. Flow
 
 ```
-lead (chat) → PM → agent per task (own worktree, branch off origin/dev) → PR into dev
-            → PM reads the diff (+ independent review if high-stakes) → squash-merge into dev
+lead (chat) → TL → agent per task (own worktree, branch off origin/dev) → PR into dev
+            → TL reads the diff (+ independent review if high-stakes) → squash-merge into dev
             → lead checks the dev preview → dev → main only with the lead's explicit OK
 ```
 
@@ -23,7 +23,7 @@ lead (chat) → PM → agent per task (own worktree, branch off origin/dev) → 
 - **Chat is the channel.** Work asked in chat needs no GitHub issue; the PR body describes it. Issues exist only when the lead opens one on GitHub. Ask the lead in chat: few questions, only real product decisions; close minor points with stated defaults.
 - **Never change what the lead has already seen** (UI, wording, behaviour) without asking.
 - **Restate before dispatching:** when the lead answers with a short reference ("your 2nd option") and your message offered an option plus an alternative, say in one line which one you are building before opening the agent.
-- **Agents may talk to each other directly** (through the backend's **Prompt**, §2). Scope changes and lead decisions go through the PM.
+- **Agents may talk to each other directly** (through the backend's **Prompt**, §2). Scope changes and lead decisions go through the TL.
 
 ## 2. Opening and running agents
 
@@ -46,7 +46,7 @@ Any harness works. What the playbook needs is six operations; pick a backend onc
 Rules for every backend:
 - Always start the agent with its working directory in the repo or a worktree (a scratch dir stops at "trust this folder?").
 - Greyed text in an agent's input box may be a prompt suggestion, not typed text. If an agent waits on a question, answer it through **Prompt**.
-- **A lead decision the agent's auto-mode classifier blocks** (e.g. removing request auth): the agent hears the decision second-hand from the PM, so the classifier may deny the edit. Don't work around it. Ask the lead to type a one-line approval into that agent's input ("I approve removing the token; carry out .pm/<slug>-00N.md"); this is the one case where the lead goes to an agent's pane.
+- **A lead decision the agent's auto-mode classifier blocks** (e.g. removing request auth): the agent hears the decision second-hand from the TL, so the classifier may deny the edit. Don't work around it. Ask the lead to type a one-line approval into that agent's input ("I approve removing the token; carry out .pm/<slug>-00N.md"); this is the one case where the lead goes to an agent's pane.
 - **Watching** runs as a background command (or the harness's own notification), never a foreground loop. Avoid watchers that expire every 30 minutes: each expiry notice interrupts the lead.
 - **After a terminal close or reboot:** sessions come back without processes (or not at all). Resume each agent in its worktree with `claude --continue` and the prompt "continue from the worktree". Restart dev previews too.
 - **A follow-up to a merged task** (a regression it caused, a review finding found after the merge) may go to the same agent, which already knows the code: it starts a **new branch off `origin/dev`** in its worktree (`git switch -c <fix/slug> origin/dev`) and opens a new PR. Every task still gets its own short-lived branch and PR; only the session is reused. Unrelated work gets a fresh agent.
@@ -62,7 +62,7 @@ Decide yourself, don't ask; show the model in the agent's name. When unsure, use
 ## 4. Briefs
 
 - **File** in `<repo>/.pm/briefs/<slug>-001.md` (`.pm/` is gitignored) for multi-part, UI or high-stakes work. Use `templates/brief.md`: the lead's words verbatim, what goes / what stays, rules, how to verify, done-when.
-  - Because `.pm/` is gitignored, a new worktree doesn't have it: copy the brief into `<worktree>/.pm/` and point the agent there ("Brief: .pm/<slug>-001.md (in this worktree)"), so it never reads or writes the PM's checkout.
+  - Because `.pm/` is gitignored, a new worktree doesn't have it: copy the brief into `<worktree>/.pm/` and point the agent there ("Brief: .pm/<slug>-001.md (in this worktree)"), so it never reads or writes the TL's checkout.
   - **Revisions** go in the same place as numbered files, `<worktree>/.pm/<slug>-002.md`, `-003.md`, … (findings, live results, the lead's answers verbatim), with the prompt "Revision: read .pm/<slug>-002.md and carry it out". The history stays readable and the prompt stays one line.
 - **Small clear tasks:** 3–5 lines straight in the prompt.
 - **Research-only tasks** (audits, comparisons, design research): no PR; the brief says "no code changes" and names a report file in `<repo>/.pm/research/`. Read the report yourself, summarise it for the lead, close the agent.
@@ -82,7 +82,7 @@ Decide yourself, don't ask; show the model in the agent's name. When unsure, use
 
 ## 6. GitHub bot
 
-Agent-written GitHub text (PRs, issues, comments, review findings) goes out as the lead's GitHub App: `~/.config/github-bot/bot-gh <gh args>` (e.g. `bot-gh pr create --base dev …`). One App for all the lead's repos, installed on selected repos; Issues RW, PRs RW, Contents R. It cannot push or merge: pushing uses git, merging stays with the PM (lead's `gh`). No "🤖" prefix.
+Agent-written GitHub text (PRs, issues, comments, review findings) goes out as the lead's GitHub App: `~/.config/github-bot/bot-gh <gh args>` (e.g. `bot-gh pr create --base dev …`). One App for all the lead's repos, installed on selected repos; Issues RW, PRs RW, Contents R. It cannot push or merge: pushing uses git, merging stays with the TL (lead's `gh`). No "🤖" prefix.
 
 New machine or repo: the lead creates the App (GitHub → Settings → Developer settings → GitHub Apps; webhook off; those permissions) or adds the repo to its installation, and puts `app-id` and `private-key.pem` (chmod 600, never print it) in `~/.config/github-bot/` next to a copy of `scripts/bot-gh`. Test: `bot-gh api /installation/repositories`. Ask before adding an allow rule for the wrapper.
 
@@ -94,10 +94,10 @@ New machine or repo: the lead creates the App (GitHub → Settings → Developer
   - Record the PID of the process that listens on the port, `ss -ltnp 'sport = :<port>'`, not `$!`. `$!` is often not the server: `cd x && setsid nohup … &` backgrounds the whole chain as a subshell, and `npm run dev` starts the server as a child. Killing the wrong PID leaves the server running.
 - If the dev preview is down, check its log, then restart it.
 
-## 8. PM context
+## 8. TL context
 
-- Keep `<repo>/.pm/HANDOFF.md` current (`templates/HANDOFF.md`): session-start steps, running agents, what's next, pending lead questions. A fresh PM reads it first.
-  - It holds **this repo's work only**. Changes or caveats that belong to another repo (a service you call, a sibling project) are told to the lead in chat and not tracked here; that repo's own PM context tracks them. This repo's contract with the other side (what we send, what we expect back) stays.
+- Keep `<repo>/.pm/HANDOFF.md` current (`templates/HANDOFF.md`): session-start steps, running agents, what's next, pending lead questions. A fresh TL reads it first.
+  - It holds **this repo's work only**. Changes or caveats that belong to another repo (a service you call, a sibling project) are told to the lead in chat and not tracked here; that repo's own TL context tracks them. This repo's contract with the other side (what we send, what we expect back) stays.
 - Lead preferences and rules go into memory immediately; durable project knowledge goes into the area READMEs (agents write it), not into a diary.
 - Suggest `/clear` at natural breaks (after a merge wave).
 - On a small machine keep about 3 agents + one dev server at a time and builds one at a time; check `free -m` before opening more.
@@ -107,7 +107,7 @@ New machine or repo: the lead creates the App (GitHub → Settings → Developer
 1. `.pm/` in `.gitignore`; create `.pm/briefs/` and `.pm/HANDOFF.md` from the template.
 2. Add the "How we work" block (`templates/claude-how-we-work.md`) to the repo's `CLAUDE.md`, adapted (high-stakes areas, conventions).
 3. Make sure `dev` exists and is the default branch; `main` is releases. (If the lead wants `main` as the default, PRs pass `--base dev`.)
-   - In a new repo only the **first commit** goes on `main`; `dev` branches off it. Every later change, the PM's own setup fixes included (a file removed, a `CLAUDE.md` tweak), goes to `dev` only, through a PR. Never push it to `main` and fast-forward `dev` after it: `main` moves only on a release the lead approved.
+   - In a new repo only the **first commit** goes on `main`; `dev` branches off it. Every later change, the TL's own setup fixes included (a file removed, a `CLAUDE.md` tweak), goes to `dev` only, through a PR. Never push it to `main` and fast-forward `dev` after it: `main` moves only on a release the lead approved.
    - Don't plan to amend and force-push a setup commit: the auto-mode classifier blocks it. Make a follow-up commit instead.
 4. Add the repo to the bot's installation (§6) and pick the preview port pair.
    - Turn on GitHub's "Automatically delete head branches", so merged PR branches don't pile up: `gh api -X PATCH repos/<o>/<r> -F delete_branch_on_merge=true`.

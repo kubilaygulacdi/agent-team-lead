@@ -1,12 +1,12 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "agent-team-lead",
-  "description": "The agent-team-lead skill as a Claude Code plugin.",
+  "name": "claude-team-lead",
+  "description": "The claude-team-lead skill as a Claude Code plugin.",
   "owner": { "name": "Mehmet Kubilay Gülaçdı" },
   "plugins": [
     {
-      "name": "agent-team-lead",
-      "description": "A domain-independent PM (team lead) playbook: lead coding agents, one per task in its own git worktree (any harness), PR review and merge gates.",
+      "name": "claude-team-lead",
+      "description": "A domain-independent team lead (TL) playbook: lead coding agents, one per task in its own git worktree (any harness), PR review and merge gates.",
       "author": { "name": "Mehmet Kubilay Gülaçdı" },
       "category": "development",
       "source": "./"
