@@ -1,6 +1,6 @@
 {
   "name": "agent-team-lead",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A domain-independent PM (team lead) playbook for Claude Code: lead coding agents, one per task in its own git worktree (any harness), PR review and merge gates.",
   "author": { "name": "Mehmet Kubilay Gülaçdı" },
   "repository": "https://github.com/kubilaygulacdi/agent-team-lead",
