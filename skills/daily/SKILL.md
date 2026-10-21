@@ -29,6 +29,8 @@ When a new project, service or feature shipped, add its flow under its bullet in
 
 Level: between technical and non-technical. Say what it does and why it matters, not how it is built.
 
+Voice: first person singular, active, as the lead speaking about their own work ("I finished…", "I'll deploy…"; in Turkish "tamamladım", "canlıya alacağım"), not passive ("was completed", "tamamlandı"). The agents' work is the lead's work in this message.
+
 Don't include:
 - numbers and statistics (test counts, accuracy, latency, line counts), unless the lead asks;
 - PR numbers, commit hashes, branch names;
