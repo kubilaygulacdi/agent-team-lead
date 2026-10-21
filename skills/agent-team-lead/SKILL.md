@@ -48,6 +48,8 @@ Rules for every backend:
 - Greyed text in an agent's input box may be a prompt suggestion, not typed text. If an agent waits on a question, answer it through **Prompt**.
 - **Watching** runs as a background command (or the harness's own notification), never a foreground loop. Avoid watchers that expire every 30 minutes: each expiry notice interrupts the lead.
 - **After a terminal close or reboot:** sessions come back without processes (or not at all). Resume each agent in its worktree with `claude --continue` and the prompt "continue from the worktree". Restart dev previews too.
+- **A follow-up to a merged task** (a regression it caused, a review finding found after the merge) may go to the same agent, which already knows the code: it starts a **new branch off `origin/dev`** in its worktree (`git switch -c <fix/slug> origin/dev`) and opens a new PR. Every task still gets its own short-lived branch and PR; only the session is reused. Unrelated work gets a fresh agent.
+- **Parallel agents** may run when their tasks touch different files. When two could touch the same area, each brief names what the other owns ("another agent is changing X; don't touch it") so the branches merge cleanly.
 
 ## 3. Model per task
 
@@ -59,6 +61,8 @@ Decide yourself, don't ask; show the model in the agent's name. When unsure, use
 ## 4. Briefs
 
 - **File** in `<repo>/.pm/briefs/<slug>-001.md` (`.pm/` is gitignored) for multi-part, UI or high-stakes work. Use `templates/brief.md`: the lead's words verbatim, what goes / what stays, rules, how to verify, done-when.
+  - Because `.pm/` is gitignored, a new worktree doesn't have it: copy the brief into `<worktree>/.pm/` and point the agent there ("Brief: .pm/<slug>-001.md (in this worktree)"), so it never reads or writes the PM's checkout.
+  - **Revisions** go in the same place as numbered files, `<worktree>/.pm/<slug>-002.md`, `-003.md`, … (findings, live results, the lead's answers verbatim), with the prompt "Revision: read .pm/<slug>-002.md and carry it out". The history stays readable and the prompt stays one line.
 - **Small clear tasks:** 3–5 lines straight in the prompt.
 - **Research-only tasks** (audits, comparisons, design research): no PR; the brief says "no code changes" and names a report file in `<repo>/.pm/research/`. Read the report yourself, summarise it for the lead, close the agent.
 - Self-contained: the agent must not need your conversation.
@@ -68,8 +72,11 @@ Decide yourself, don't ask; show the model in the agent's name. When unsure, use
 
 1. Read the diff yourself (`gh pr diff N`) against the brief.
 2. **High-stakes PRs** (the areas the repo's `CLAUDE.md` names, e.g. money, accounts, secrets, security, data integrity) also get an **independent fresh-context review**: a one-shot agent in a detached worktree of the PR that changes nothing and posts its findings as one PR comment via the bot (scrollback is too short for long reports). Revisions go back to the same implementer.
+   - **Without a bot on the repo** (or for a quick check): a built-in read-only sub-agent (`Agent` tool, strongest model, background) that reads `git diff origin/dev...origin/<branch>`, may run the tests in the implementer's worktree (never in one that holds real keys), changes nothing and returns a short report (file:line, scenario, severity) to you. Pass the findings to the implementer as a revision file; tell the lead in a few lines.
 3. Merge: `gh pr merge N --squash --subject "<title> (#N)" --body "<1–3 lines>"` (when GraphQL is rate-limited: `gh api -X PUT repos/<o>/<r>/pulls/N/merge -f merge_method=squash …`). Check the state is `MERGED` before any cleanup.
 4. Tell the lead what to check on the dev preview. Release `dev` → `main` only after their explicit OK.
+   - **Release:** a PR `dev` → `main` titled `release: vX.Y.Z`, merged with a **merge commit** (`gh pr merge N --merge`), not a squash, so `main` keeps each squashed task commit. Then an annotated tag on the merge commit and a GitHub Release with short notes and the deploy steps: `git tag -a vX.Y.Z <sha> -m "…"`, `git push origin vX.Y.Z`, `gh release create vX.Y.Z --verify-tag --title vX.Y.Z --notes "…"`.
+   - **Version bump:** a fix → patch, a feature → minor, a DB migration (or another change the deploy must handle by hand) → major. Record the rule in memory if the lead sets another one.
 5. **Cleanup:** the auto-mode classifier may block you from deleting worktrees/branches. Ask the lead to run `! bash <skill-dir>/scripts/cleanup-worktrees.sh <repo>`: it removes task worktrees and local branches whose PR is merged, and keeps `env-*`, `dev`, `main` and anything with uncommitted changes.
 
 ## 6. GitHub bot
