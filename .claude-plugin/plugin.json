@@ -1,6 +1,6 @@
 {
   "name": "claude-team-lead",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "A domain-independent team lead (TL) playbook for Claude Code: lead coding agents, one per task in its own git worktree (any harness), PR review and merge gates.",
   "author": {
     "name": "Mehmet Kubilay Gülaçdı"
