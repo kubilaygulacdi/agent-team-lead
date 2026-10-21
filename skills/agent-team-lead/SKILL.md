@@ -103,7 +103,9 @@ New machine or repo: the lead creates the App (GitHub → Settings → Developer
 
 1. `.pm/` in `.gitignore`; create `.pm/briefs/` and `.pm/HANDOFF.md` from the template.
 2. Add the "How we work" block (`templates/claude-how-we-work.md`) to the repo's `CLAUDE.md`, adapted (high-stakes areas, conventions).
-3. Make sure `dev` exists and is the default branch; `main` is releases.
+3. Make sure `dev` exists and is the default branch; `main` is releases. (If the lead wants `main` as the default, PRs pass `--base dev`.)
+   - In a new repo only the **first commit** goes on `main`; `dev` branches off it. Every later change, the PM's own setup fixes included (a file removed, a `CLAUDE.md` tweak), goes to `dev` only, through a PR. Never push it to `main` and fast-forward `dev` after it: `main` moves only on a release the lead approved.
+   - Don't plan to amend and force-push a setup commit: the auto-mode classifier blocks it. Make a follow-up commit instead.
 4. Add the repo to the bot's installation (§6) and pick the preview port pair.
 5. Record the lead's preferences in memory (language, report style, go gate, model rules).
 
