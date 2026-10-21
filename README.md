@@ -1,40 +1,53 @@
-# agent-team-lead
+# claude-team-lead
 
-A [Claude Code](https://claude.com/claude-code) skill, packaged as a plugin: a domain-independent playbook for running a software project as a PM (team lead) agent that leads coding agents, one per task in its own git worktree, in any harness.
+A [Claude Code](https://claude.com/claude-code) skill that lets one Claude session act as the **team lead (TL)** of your software project.
 
-The lead talks to the PM in chat. The PM opens one agent per task in its own git worktree with a brief, reviews the PR and squash-merges it into `dev`; `dev` → `main` only with the lead's OK.
+You tell the TL what you want. The TL hands each task to its own coding agent, checks the result and merges it. You only make the decisions.
+
+## How it works
+
+1. You describe a task in chat.
+2. The TL writes a short brief and starts a coding agent for it, in its own git worktree and branch.
+3. The agent does the work and opens a pull request.
+4. The TL reviews the pull request. Risky changes (security, money, data, public APIs) also get a second, independent review.
+5. The TL merges it into `dev`. You check `dev`.
+6. When you say so, `dev` is released to `main`.
+
+Nothing is built without your go, and nothing reaches `main` without your OK.
+
+## Why use it
+
+- **Parallel work without chaos:** every task runs in its own worktree, so several agents can work at once.
+- **The right model for each task:** the strongest model for risky or tricky work, a cheaper one for small edits and lookups. Each agent's name shows its model, so you always see which one is working.
+- **Review on every change:** each pull request is checked before it is merged; the risky ones are checked twice.
+- **A clean history:** one commit per pull request, tagged releases.
+- **Works with any setup:** Claude Code's built-in sub-agents, or terminal tools such as herdr and tmux if you want to watch the agents work.
+- **Picks up where it left off:** a handoff file lets a new session continue the project.
 
 ## Install
 
-As a Claude Code plugin (any machine):
-
 ```
-/plugin marketplace add kubilaygulacdi/agent-team-lead
-/plugin install agent-team-lead@agent-team-lead
+/plugin marketplace add kubilaygulacdi/claude-team-lead
+/plugin install claude-team-lead@claude-team-lead
 ```
 
-Update later with `/plugin marketplace update agent-team-lead`.
+Update later with `/plugin marketplace update claude-team-lead`.
 
-For editing it locally instead, clone the repo and link the skill folder:
+## Use
 
-```sh
-gh repo clone kubilaygulacdi/agent-team-lead ~/Desktop/git-personal/agent-team-lead
-ln -s ~/Desktop/git-personal/agent-team-lead/skills/agent-team-lead ~/.claude/skills/agent-team-lead
-```
+Open Claude Code in your project and say something like *"be the team lead for this project"*. The first time, it asks a few questions and sets the repo up. After that you just talk to it.
 
-Don't do both on one machine, or the skill loads twice.
+## What's inside
 
-## Contents
-
-| Path | What |
-|---|---|
-| `skills/agent-team-lead/SKILL.md` | The playbook: flow, opening and running agents (any harness), model per task, briefs, review and merge, the GitHub bot, previews, PM context, setup, session start |
-| `…/references/` | Backends: herdr, tmux (the built-in sub-agent backend needs none) |
-| `…/scripts/agent-watch.sh` | herdr backend: prints a named agent when it leaves `working`; `--once` exits on the first event (run as a background command) |
-| `…/scripts/cleanup-worktrees.sh` | Removes task worktrees and local branches whose PR is merged |
-| `…/scripts/bot-gh` | Runs `gh` as a GitHub App (the agents' bot); needs `app-id` and `private-key.pem` next to it, never in this repo |
-| `…/templates/` | Brief, PM handoff and the `CLAUDE.md` "How we work" block |
+- `skills/claude-team-lead/SKILL.md`: the playbook the TL follows.
+- `references/`: how to run agents with herdr or tmux.
+- `scripts/`: watch agents, clean up merged worktrees, post to GitHub as a bot.
+- `templates/`: brief, handoff and `CLAUDE.md` templates.
 
 ## Requirements
 
-Claude Code (any harness), `git`, `gh`, `python3`, `openssl` (for `bot-gh`). Optional: a terminal multiplexer such as herdr or tmux, if the lead wants to watch agents work.
+Claude Code, `git` and the GitHub CLI (`gh`). Optional: herdr or tmux; `python3` and `openssl` for the GitHub bot script.
+
+## License
+
+MIT

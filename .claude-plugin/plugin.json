@@ -1,9 +1,18 @@
 {
-  "name": "agent-team-lead",
+  "name": "claude-team-lead",
   "version": "1.1.1",
-  "description": "A domain-independent PM (team lead) playbook for Claude Code: lead coding agents, one per task in its own git worktree (any harness), PR review and merge gates.",
-  "author": { "name": "Mehmet Kubilay Gülaçdı" },
-  "repository": "https://github.com/kubilaygulacdi/agent-team-lead",
+  "description": "A domain-independent team lead (TL) playbook for Claude Code: lead coding agents, one per task in its own git worktree (any harness), PR review and merge gates.",
+  "author": {
+    "name": "Mehmet Kubilay Gülaçdı"
+  },
+  "repository": "https://github.com/kubilaygulacdi/claude-team-lead",
   "license": "MIT",
-  "keywords": ["orchestration", "multi-agent", "worktree", "project-management"]
+  "keywords": [
+    "claude-code",
+    "multi-agent",
+    "subagents",
+    "orchestration",
+    "git-worktree",
+    "team-lead"
+  ]
 }
