@@ -46,6 +46,7 @@ Any harness works. What the playbook needs is six operations; pick a backend onc
 Rules for every backend:
 - Always start the agent with its working directory in the repo or a worktree (a scratch dir stops at "trust this folder?").
 - Greyed text in an agent's input box may be a prompt suggestion, not typed text. If an agent waits on a question, answer it through **Prompt**.
+- **A lead decision the agent's auto-mode classifier blocks** (e.g. removing request auth): the agent hears the decision second-hand from the PM, so the classifier may deny the edit. Don't work around it. Ask the lead to type a one-line approval into that agent's input ("I approve removing the token; carry out .pm/<slug>-00N.md"); this is the one case where the lead goes to an agent's pane.
 - **Watching** runs as a background command (or the harness's own notification), never a foreground loop. Avoid watchers that expire every 30 minutes: each expiry notice interrupts the lead.
 - **After a terminal close or reboot:** sessions come back without processes (or not at all). Resume each agent in its worktree with `claude --continue` and the prompt "continue from the worktree". Restart dev previews too.
 - **A follow-up to a merged task** (a regression it caused, a review finding found after the merge) may go to the same agent, which already knows the code: it starts a **new branch off `origin/dev`** in its worktree (`git switch -c <fix/slug> origin/dev`) and opens a new PR. Every task still gets its own short-lived branch and PR; only the session is reused. Unrelated work gets a fresh agent.
@@ -77,7 +78,7 @@ Decide yourself, don't ask; show the model in the agent's name. When unsure, use
 4. Tell the lead what to check on the dev preview. Release `dev` → `main` only after their explicit OK.
    - **Release:** a PR `dev` → `main` titled `release: vX.Y.Z`, merged with a **merge commit** (`gh pr merge N --merge`), not a squash, so `main` keeps each squashed task commit. Then an annotated tag on the merge commit and a GitHub Release with short notes and the deploy steps: `git tag -a vX.Y.Z <sha> -m "…"`, `git push origin vX.Y.Z`, `gh release create vX.Y.Z --verify-tag --title vX.Y.Z --notes "…"`.
    - **Version bump:** a fix → patch, a feature → minor, a DB migration (or another change the deploy must handle by hand) → major. Record the rule in memory if the lead sets another one.
-5. **Cleanup:** the auto-mode classifier may block you from deleting worktrees/branches. Ask the lead to run `! bash <skill-dir>/scripts/cleanup-worktrees.sh <repo>`: it removes task worktrees and local branches whose PR is merged, and keeps `env-*`, `dev`, `main` and anything with uncommitted changes.
+5. **Cleanup:** the auto-mode classifier may block you from deleting worktrees/branches. Ask the lead to run `! bash <skill-dir>/scripts/cleanup-worktrees.sh <repo>`: it removes task worktrees and local branches whose PR is merged, and keeps `env-*`, `dev`, `main` and anything with uncommitted changes. Merged branches on GitHub are deleted by the repo setting from §9; if it is off, delete them (`git push origin --delete <branch>`) after checking each one's PR is merged.
 
 ## 6. GitHub bot
 
@@ -90,11 +91,13 @@ New machine or repo: the lead creates the App (GitHub → Settings → Developer
 - `main` and `dev` previews run detached from their own worktrees on a fixed port pair (n / n+1), e.g. via a `dev-start` skill or script.
 - Feature previews: an agent runs its own on a free port above the pair and stops it when done, **by its own PID only** — never `pkill`/`killall` a dev server (that takes the dev preview down with it).
 - When the lead wants to see an unmerged PR, start a detached preview yourself from the task worktree on a free port (`setsid nohup npm run dev -- -p <port> … &`, log under `~/.local/state/dev-start/<repo>/`), give the local and LAN URLs, and stop it after the merge.
+  - Record the PID of the process that listens on the port, `ss -ltnp 'sport = :<port>'`, not `$!`. `$!` is often not the server: `cd x && setsid nohup … &` backgrounds the whole chain as a subshell, and `npm run dev` starts the server as a child. Killing the wrong PID leaves the server running.
 - If the dev preview is down, check its log, then restart it.
 
 ## 8. PM context
 
 - Keep `<repo>/.pm/HANDOFF.md` current (`templates/HANDOFF.md`): session-start steps, running agents, what's next, pending lead questions. A fresh PM reads it first.
+  - It holds **this repo's work only**. Changes or caveats that belong to another repo (a service you call, a sibling project) are told to the lead in chat and not tracked here; that repo's own PM context tracks them. This repo's contract with the other side (what we send, what we expect back) stays.
 - Lead preferences and rules go into memory immediately; durable project knowledge goes into the area READMEs (agents write it), not into a diary.
 - Suggest `/clear` at natural breaks (after a merge wave).
 - On a small machine keep about 3 agents + one dev server at a time and builds one at a time; check `free -m` before opening more.
@@ -107,6 +110,7 @@ New machine or repo: the lead creates the App (GitHub → Settings → Developer
    - In a new repo only the **first commit** goes on `main`; `dev` branches off it. Every later change, the PM's own setup fixes included (a file removed, a `CLAUDE.md` tweak), goes to `dev` only, through a PR. Never push it to `main` and fast-forward `dev` after it: `main` moves only on a release the lead approved.
    - Don't plan to amend and force-push a setup commit: the auto-mode classifier blocks it. Make a follow-up commit instead.
 4. Add the repo to the bot's installation (§6) and pick the preview port pair.
+   - Turn on GitHub's "Automatically delete head branches", so merged PR branches don't pile up: `gh api -X PATCH repos/<o>/<r> -F delete_branch_on_merge=true`.
 5. Record the lead's preferences in memory (language, report style, go gate, model rules).
 
 ## 10. Session start
