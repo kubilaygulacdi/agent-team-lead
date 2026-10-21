@@ -37,9 +37,12 @@ Update later with `/plugin marketplace update claude-team-lead`.
 
 Open Claude Code in your project and say something like *"be the team lead for this project"*. The first time, it asks a few questions and sets the repo up. After that you just talk to it.
 
+For a stand-up message, ask *"write my daily"*: it summarizes the major work since the last working day and what comes next, ready to paste into your team chat.
+
 ## What's inside
 
 - `skills/claude-team-lead/SKILL.md`: the playbook the TL follows.
+- `skills/daily/SKILL.md`: writes your daily stand-up message (yesterday / today) for the current project.
 - `references/`: how to run agents with herdr or tmux.
 - `scripts/`: watch agents, clean up merged worktrees, post to GitHub as a bot.
 - `templates/`: brief, handoff and `CLAUDE.md` templates.
