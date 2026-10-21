@@ -18,6 +18,7 @@ Nothing is built without your go, and nothing reaches `main` without your OK.
 ## Why use it
 
 - **Parallel work without chaos:** every task runs in its own worktree, so several agents can work at once.
+- **The right model for each task:** the strongest model for risky or tricky work, a cheaper one for small edits and lookups. Each agent's name shows its model, so you always see which one is working.
 - **Review on every change:** each pull request is checked before it is merged; the risky ones are checked twice.
 - **A clean history:** one commit per pull request, tagged releases.
 - **Works with any setup:** Claude Code's built-in sub-agents, or terminal tools such as herdr and tmux if you want to watch the agents work.
